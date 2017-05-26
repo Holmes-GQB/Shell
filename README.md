@@ -1,3 +1,3 @@
 # Shell
 
-Here is used to deposit Shell code.
+Here is used to deposit Shell script codes.
