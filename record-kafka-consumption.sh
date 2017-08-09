@@ -3,7 +3,7 @@
 #       This progarm is using to record Kafka consumption.
 # Explain:
 #	Add this script to crontab, let it be executed hourly.
-#	Such as: 0 */1 * * * /bin/bash /<path>/check-the-backlog.sh
+#	Such as: 0 */1 * * * /bin/bash /<path>/record-kafka-consumption.sh
 # history:
 # 2017/07/04 Holmes-GQB First release
 # 2017/07/05 Holmes-GQB Second modify (Add archiving function)
