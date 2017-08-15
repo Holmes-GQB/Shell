@@ -9,7 +9,7 @@ export PATH
 ##### variable #####
 filename=`date +%s%N | md5sum | head -c 10`
 dir=/tmp
-size=10	    #The unit is GB
+size=5	    #The unit is GB
 
 ##### checkUser #####
 if [ ${UID} -eq 0 ] ; then
@@ -21,5 +21,7 @@ fi
 time dd of=${dir}/${filename}.dat if=/dev/zero bs=1M count=`echo "1024*${size}" | bc` oflag=direct
 wait
 time dd if=${dir}/${filename}.dat of=/dev/null bs=1M count=`echo "1024*${size}" | bc` iflag=direct
+wait
+> ${dir}/${filename}.dat
 wait
 rm -f ${dir}/${filename}.dat
