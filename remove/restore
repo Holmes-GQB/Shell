@@ -1,0 +1,62 @@
+#!/bin/bash
+# Program:
+# 	This progarm is using to restore deleted files.
+# history:
+# 2017/08/18 Holmes-GQB First release
+# 2017/08/19 Holmes-GQB Second modify(1.Modify restore location; 2.Add partial comments)
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+
+##### variable #####
+current_time=`date +%Y-%m-%d_%H:%M:%S`
+arg_number=$#
+arg=$@
+arg1=$1
+recycle=/tmp/recycle/$(whoami)
+
+##### function #####
+restore() {
+    arg=`echo ${arg} | sed 's/^-[-a-z]*\s*//g'`	    #Get the file name you want to restore
+    for i in ${arg}
+	do
+	    dir=`sed -n "/\b$i\b/s/^20[0-9]\{2\}.*path:\s*//p" ${recycle}/.history`	#Gets the original location of the file
+	    cp -pr ${recycle}/$i ${dir} 2>/dev/null
+	    if [ $? -eq 0 ] ; then
+		sed -i "/\b$i\b/d" /tmp/recycle/$(whoami)/.history	    #Delete record after successful restore
+	    else
+		cp -pr ${recycle}/$i ${dir}/$i.${current_time}
+		sed -i "/\b$i\b/d" /tmp/recycle/$(whoami)/.history
+	    fi
+	done
+}
+
+##### action #####
+## prompt
+if [ ${arg_number} -eq 0 ] ; then
+    echo "Usage: restore OPTION [FILE]..."
+    echo "Try 'restore --help' for more information."
+    exit 0
+else
+    case ${arg1} in
+    "-l"|"--list")
+	ls /tmp/recycle/$(whoami) | more
+	;;
+    "-r"|"--restore")
+	restore
+	;;
+    "-h"|"--help")
+	echo "Usage: restore [OPTION] FILE..."
+	echo -e "Restore the FILE(s) from recycle bin.\n"
+	echo "  -l, --list	    view the files inside the recycle bin."
+	echo "  -r, --restore	    restore the file inside the recycle bin."
+	echo -e "  -h, --help	    get help documentation.\n"
+	echo "For example: "
+	echo "  restore -l"
+	echo "  restore -r FILE1 [FILE2]"
+	;;
+    *)
+	echo "Invalid argument"
+	exit 22
+	;;
+    esac
+fi

@@ -1,0 +1,102 @@
+#!/bin/bash
+# Program:
+# 	This progarm is using to implement recycle bin function.
+# history:
+# 2017/08/17 Holmes-GQB First release
+# 2017/08/18 Holmes-GQB Second modify(1.Add file size to determine function; 2.Support adding multiple parameters)
+# 2017/08/19 Holmes-GQB Third modify(1.Recycle bin same name file judgment mechanism; 2.Add partial comments; 3.Determine the initial path of the file)
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+
+##### variable #####
+current_time=`date +%Y-%m-%d_%H:%M:%S`
+home_path=/home/$(whoami)
+arg=$@
+
+##### function #####
+newRecycleBin() {
+    if [ ! -d /tmp/recycle ] ; then
+        mkdir -p /tmp/recycle
+        chmod 777 /tmp/recycle
+        mkdir -p /tmp/recycle/$(whoami)
+        chmod 700 /tmp/recycle/$(whoami)
+        touch /tmp/recycle/$(whoami)/.history
+        chmod 600 /tmp/recycle/$(whoami)/.history
+    else
+        if [ ! -d /tmp/recycle/$(whoami) ] ; then
+	   mkdir -p /tmp/recycle/$(whoami)
+	   chmod 700 /tmp/recycle/$(whoami)
+	   touch /tmp/recycle/$(whoami)/.history
+	   chmod 600 /tmp/recycle/$(whoami)/.history
+        else
+	    if [ ! -f /tmp/recycle/$(whoami)/.history ] ; then
+		touch /tmp/recycle/$(whoami)/.history
+		chmod 600 /tmp/recycle/$(whoami)/.history
+	    fi
+        fi
+    fi
+}
+
+decisionPath() {
+    if [ `echo ${dir} | egrep "^/"` ] ; then
+        absolute_path=${dir}
+    elif [ `echo ${dir} | egrep "^~"` ] ; then
+	absolute_path=`echo ${dir} | sed "s#~#${home_path}#g"`
+    else
+	relative_path=${dir}
+    fi
+}
+
+absolutePath() {
+    if [ ${absolute_path} ] ; then
+	file_path=${absolute_path}
+    else
+	file_path=$(pwd)/${relative_path}
+    fi
+}
+
+delete() {
+    file=`basename $i`
+    dir=`dirname $i`
+    decisionPath
+    absolutePath
+    cp -pr $i /tmp/recycle/$(whoami)/${file} 2>/dev/null    #Errors are reported when a file with the same name exists
+    if [ $? -eq 0 ] ; then
+	echo "${current_time}, rm_file: $i, file_initial_path: ${file_path}" >> /tmp/recycle/$(whoami)/.history
+	rm -rf $i
+    else
+	cp -pr $i /tmp/recycle/$(whoami)/${file}.${current_time}    #Adds a time suffix to a file when a file with the same name exists
+	echo "${current_time}, rm_file: ${file}.${current_time}, file_initial_path: ${file_path}" >> /tmp/recycle/$(whoami)/.history
+	rm -rf $i
+    fi
+}
+
+remove() {
+    if [ -z "${arg}" ] ; then
+        echo "Usage: rm file1 [file2 file3...]"
+        exit 0
+    elif [ -n "${arg}" ] || [ -n `echo "${arg}" | egrep "^-[drfiIv]+"` ] ; then
+        arg=`echo "${arg}" | sed 's/^-[drfiIv]\+\s*//g'`    #Remove rm command option and keep the filename
+    fi
+    ## Delete directly when file is greater than 2G
+    for i in ${arg}
+	do
+	    if [ -f $i ] ; then
+		if [[ "`ls -l $i | awk '{print $5}'`" -gt "2147483648" ]] ; then
+		    rm -i $i
+		else
+		    delete    
+		fi
+	    elif [ -d $i ] ; then
+		if [[ "`du -sk $i | awk '{print $1}'`" -gt "2097152" ]] ; then
+		    rm -ri $i
+		else
+		    delete
+		fi
+	    fi
+	done
+}
+
+##### action #####
+newRecycleBin
+remove
