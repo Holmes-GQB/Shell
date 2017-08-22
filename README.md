@@ -1,3 +1,3 @@
-# Shell
+# 欢迎来到我的Shell小屋
 
-Here is used to deposit Shell scripts.
+这里用来记录我的一些Shell脚本，希望能给你带来一点灵感~
