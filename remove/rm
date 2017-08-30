@@ -12,6 +12,9 @@ export PATH
 current_time=`date +%Y-%m-%d_%H:%M:%S`
 home_path=/home/$(whoami)
 arg=$@
+size=2		#Unit for GB
+kb=`echo "$[1024*1024*${size}]"`
+bytes=`echo "$((1024*1024*1024*${size}))"`
 
 ##### function #####
 newRecycleBin() {
@@ -82,13 +85,13 @@ remove() {
     for i in ${arg}
 	do
 	    if [ -f $i ] ; then
-		if [[ "`ls -l $i | awk '{print $5}'`" -gt "2147483648" ]] ; then
+		if [[ "`ls -l $i | awk '{print $5}'`" -gt "${bytes}" ]] ; then
 		    /usr/bin/rm -i $i
 		else
 		    delete    
 		fi
 	    elif [ -d $i ] ; then
-		if [[ "`du -sk $i | awk '{print $1}'`" -gt "2097152" ]] ; then
+		if [[ "`du -sk $i | awk '{print $1}'`" -gt "${kb}" ]] ; then
 		    /usr/bin/rm -ri $i
 		else
 		    delete
