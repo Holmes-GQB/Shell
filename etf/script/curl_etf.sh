@@ -1,10 +1,17 @@
 #!/bin/bash
+# Program:
+#       这个脚本用来获取天天基金网实时估值。
+# History:
+#       2018/04/21 Holmes-GQB 第一次发布
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+export PATH
 
+##### 变量区 #####
 date_time=`date "+%Y-%m-%d %H:%M"`
+file_dir=../file
+log_dir=../logs
 
-file_dir=/data/etf/file
-log_dir=/data/etf/logs
-
+##### 函数区 #####
 function echolog () {
     echo -e "${date_time} $*" >> ${log_dir}/etf_$(date +%Y%m%d).log
 }
@@ -15,6 +22,7 @@ function green() {
     echo -e "\033[32;1m${1}\033[0m"
 }
 
+##### 动作区 #####
 if ls ${file_dir}/*.html > /dev/null 2>&1 ; then
     \rm ${file_dir}/*.html
 fi
