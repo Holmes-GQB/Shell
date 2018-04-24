@@ -3,6 +3,7 @@
 #       这个脚本用来获取天天基金网实时估值。
 # History:
 #       2018/04/21 Holmes-GQB 第一次发布
+#       2018/04/24 Holmes-GQB 第一次修改（修复涨幅判断的bug）
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 export PATH
 
@@ -48,18 +49,7 @@ do
     symbol=`echo ${range1} | grep -o '[+-]'`                                        # 判断涨跌
     etf_name=`cat /data/etf/file/list.txt | grep -Po "(?<=${file%.*},)[^,]*"`       # 根据列表获取名称
     e_value=`cat /data/etf/file/list.txt | awk -F ',' '/'${file%.*}'/{print $3}'`   # 根据列表获取E大当前净值
-    if [[ "X${symbol}" == "X+" ]] ; then
-        range2=`red ${range1}`
-        if [[ ${value1} > ${e_value} ]] ; then
-            value2=`red ${value1}`
-            echolog "[${etf_name}]\t净值估算为: ${value2} ; 估算涨幅为: ${range2}%"
-        elif [[ ${value1} < ${e_value} ]] ; then
-            value2=`green ${value1}`
-            echolog "[${etf_name}]\t净值估算为: ${value2} ; 估算涨幅为: ${range2}%"
-        else
-            echolog "[${etf_name}]\t净值估算为: ${value1} ; 估算涨幅为: ${range2}%"
-        fi
-    elif [[ "X${symbol}" == "X-" ]] ; then
+    if [[ "X${symbol}" == "X-" ]] ; then
         range2=`green ${range1}`
         if [[ ${value1} > ${e_value} ]] ; then
             value2=`red ${value1}`
@@ -71,7 +61,16 @@ do
             echolog "[${etf_name}]\t净值估算为: ${value1} ; 估算涨幅为: ${range2}%"
         fi
     else
-        echolog "[${etf_name}]\t净值估算为: ${value1} ; 估算涨幅为: ${range1}%"
+        range2=`red ${range1}`
+        if [[ ${value1} > ${e_value} ]] ; then
+            value2=`red ${value1}`
+            echolog "[${etf_name}]\t净值估算为: ${value2} ; 估算涨幅为: ${range2}%"
+        elif [[ ${value1} < ${e_value} ]] ; then
+            value2=`green ${value1}`
+            echolog "[${etf_name}]\t净值估算为: ${value2} ; 估算涨幅为: ${range2}%"
+        else
+            echolog "[${etf_name}]\t净值估算为: ${value1} ; 估算涨幅为: ${range2}%"
+        fi
     fi
 done
 echolog "-------------------- 万恶的分隔线 --------------------"
